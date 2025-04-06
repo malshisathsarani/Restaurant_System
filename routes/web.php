@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Business routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/business', [BusinessController::class, 'index'])->name('dashboard.business');
     Route::get('dashboard/business/create', [BusinessController::class, 'create'])->name('dashboard.business.create');
@@ -34,25 +35,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/business/{id}/edit', [BusinessController::class, 'edit'])->name('dashboard.business.edit');
     Route::put('dashboard/business/{id}', [BusinessController::class, 'update'])->name('dashboard.business.update');
     Route::delete('dashboard/business/{id}', [BusinessController::class, 'destroy'])->name('dashboard.business.destroy');
-    
 });
 
-Route::middleware(['auth', 'verified'])->group(function (){
-    Route::get('dashboard/collection', [CollectionController::class, 'index'])->name('dashboard.collection');
-Route::get('dashboard/collection/create', [CollectionController::class, 'create'])->name('dashboard.collection.create');
-Route::post('dashboard/collection/store', [CollectionController::class, 'store'])->name('dashboard.collection.store');
-Route::get('dashboard/collection/{id}/show', [CollectionController::class, 'show'])->name('dashboard.collection.show');
-Route::get('dashboard/collection/{id}/edit', [CollectionController::class, 'edit'])->name('dashboard.collection.edit');
-Route::put('dashboard/collection/{id}', [CollectionController::class, 'update'])->name('dashboard.collection.update');
-Route::delete('dashboard/collection/{id}', [CollectionController::class, 'destroy'])->name('dashboard.collection.destroy');
+// Collection routes - using consistent naming "dashboard.collection"
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard/collection', [CollectionController::class, 'index'])->name('dashboard.collection');  // Main change: Use dashboard.collection instead of dashboard.collection.index
+    Route::get('dashboard/collection/create', [CollectionController::class, 'create'])->name('dashboard.collection.create');
+    Route::post('dashboard/collection', [CollectionController::class, 'store'])->name('dashboard.collection.store');  // Changed to follow RESTful convention
+    Route::get('dashboard/collection/{id}', [CollectionController::class, 'show'])->name('dashboard.collection.show');  // More RESTful URL
+    Route::get('dashboard/collection/{id}/edit', [CollectionController::class, 'edit'])->name('dashboard.collection.edit');
+    Route::put('dashboard/collection/{id}', [CollectionController::class, 'update'])->name('dashboard.collection.update');
+    Route::delete('dashboard/collection/{id}', [CollectionController::class, 'destroy'])->name('dashboard.collection.destroy');
 });
 
-Route::get('dashboard/collection', function () {
-    return Inertia::render('Collection/collection'); // Adjust the Inertia page if needed
-})->middleware(['auth', 'verified'])->name('dashboard.collection');
-
+// Item routes
 Route::get('dashboard/item', function () {
-    return Inertia::render('Item/item'); // Adjust the Inertia page if needed
+    return Inertia::render('Item/item');
 })->middleware(['auth', 'verified'])->name('dashboard.item');
 
 require __DIR__.'/auth.php';

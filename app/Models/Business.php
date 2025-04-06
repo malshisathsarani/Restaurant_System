@@ -11,7 +11,7 @@ class Business extends Model
 
     protected $fillable = ['name', 'logo', 'address'];
 
-    public function collections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function collections()
     {
         return $this->hasMany(Collection::class);
     }
