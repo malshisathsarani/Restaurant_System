@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -37,20 +38,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('dashboard/business/{id}', [BusinessController::class, 'destroy'])->name('dashboard.business.destroy');
 });
 
-// Collection routes - using consistent naming "dashboard.collection"
+// Collection routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard/collection', [CollectionController::class, 'index'])->name('dashboard.collection');  // Main change: Use dashboard.collection instead of dashboard.collection.index
+    Route::get('dashboard/collection', [CollectionController::class, 'index'])->name('dashboard.collection');
     Route::get('dashboard/collection/create', [CollectionController::class, 'create'])->name('dashboard.collection.create');
-    Route::post('dashboard/collection', [CollectionController::class, 'store'])->name('dashboard.collection.store');  // Changed to follow RESTful convention
-    Route::get('dashboard/collection/{id}', [CollectionController::class, 'show'])->name('dashboard.collection.show');  // More RESTful URL
+    Route::post('dashboard/collection', [CollectionController::class, 'store'])->name('dashboard.collection.store');
+    Route::get('dashboard/collection/{id}', [CollectionController::class, 'show'])->name('dashboard.collection.show');
     Route::get('dashboard/collection/{id}/edit', [CollectionController::class, 'edit'])->name('dashboard.collection.edit');
     Route::put('dashboard/collection/{id}', [CollectionController::class, 'update'])->name('dashboard.collection.update');
     Route::delete('dashboard/collection/{id}', [CollectionController::class, 'destroy'])->name('dashboard.collection.destroy');
 });
 
-// Item routes
-Route::get('dashboard/item', function () {
-    return Inertia::render('Item/item');
-})->middleware(['auth', 'verified'])->name('dashboard.item');
+// Item routes (single definition)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard/item', [ItemController::class, 'index'])->name('dashboard.item');
+    Route::get('dashboard/item/create', [ItemController::class, 'create'])->name('dashboard.item.create');
+    Route::post('dashboard/item/store', [ItemController::class, 'store'])->name('dashboard.item.store');
+    Route::get('dashboard/item/{id}', [ItemController::class, 'show'])->name('dashboard.item.show');
+    Route::get('dashboard/item/{id}/edit', [ItemController::class, 'edit'])->name('dashboard.item.edit');
+    Route::put('dashboard/item/{id}', [ItemController::class, 'update'])->name('dashboard.item.update');
+    Route::delete('dashboard/item/{id}', [ItemController::class, 'destroy'])->name('dashboard.item.destroy');
+    
+    // API route for dependent dropdown
+    Route::get('api/collections/{businessId}', [ItemController::class, 'getCollections'])
+        ->name('api.collections');
+});
 
 require __DIR__.'/auth.php';
