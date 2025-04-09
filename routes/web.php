@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/collection', [CollectionController::class, 'index'])->name('dashboard.collection');
     Route::get('dashboard/collection/create', [CollectionController::class, 'create'])->name('dashboard.collection.create');
-    Route::post('dashboard/collection', [CollectionController::class, 'store'])->name('dashboard.collection.store');
+    Route::post('dashboard/collection/store', [CollectionController::class, 'store'])->name('dashboard.collection.store');
     Route::get('dashboard/collection/{id}', [CollectionController::class, 'show'])->name('dashboard.collection.show');
     Route::get('dashboard/collection/{id}/edit', [CollectionController::class, 'edit'])->name('dashboard.collection.edit');
     Route::put('dashboard/collection/{id}', [CollectionController::class, 'update'])->name('dashboard.collection.update');

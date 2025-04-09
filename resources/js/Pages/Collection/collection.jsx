@@ -6,7 +6,12 @@ import { Head } from '@inertiajs/react';
 import Sidebar from '@/lib/SideNavLinks';
 
 export default function Collection({ collections }) {
-  console.log('Collections:', collections);
+  console.log('Collections detailed:', collections.map(c => ({
+    id: c.id,
+    name: c.name,
+    business: c.business,
+    has_business: !!c.business
+  })));
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);

@@ -9,7 +9,7 @@ class Collection extends Model
 {
     use HasFactory;
     
-    protected $table = 'collections'; // Make sure this matches your actual table name
+    //protected $table = 'collections'; // Make sure this matches your actual table name
     
     protected $fillable = [
         

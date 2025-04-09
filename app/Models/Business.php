@@ -9,7 +9,11 @@ class Business extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'logo', 'address'];
+    protected $fillable = [
+        'name', 
+        'logo', 
+        'address'
+    ];
 
     public function collections()
     {

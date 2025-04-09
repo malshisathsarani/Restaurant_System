@@ -5,33 +5,49 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use App\Models\Business;
 use App\Http\Requests\StoreCollectionRequest;
+use App\Repositories\All\Collections\CollectionInterface;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 
 class CollectionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
+     /**
+     * @var CollectionInterface
      */
+    protected $collectionInterface;
+
+    /**
+     * CollectionController constructor.
+     *
+     * @param CollectionInterface $collectionInterface
+     */
+    public function __construct(CollectionInterface $collectionInterface) 
+    {
+        $this->collectionInterface = $collectionInterface;
+    }
+
+    
     public function index()
     {
-        $collections = Collection::with('business')->get(); // optional: eager load business if needed
+        // Use the instance variable instead of creating a new one
+        $collections = $this->collectionInterface->all(['*'], ['business']);
     
         return Inertia::render('Collection/collection', [
             'collections' => $collections
         ]);
     }
+    
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
         // Get all businesses to populate the dropdown
-        $collections = Collection::with('business')->get();
+        $businesses = Business::all();
 
         return Inertia::render('Collection/create', [
-            'collections' => $collections
+            'businesses' => $businesses // FIXED: Pass businesses instead of collections
         ]);
     }
 
@@ -40,11 +56,8 @@ class CollectionController extends Controller
      */
     public function store(StoreCollectionRequest $request)
     {
-        // Validate and get data
-        $validated = $request->validated();
-        
-        // Create collection
-        Collection::create($validated);
+        // Use the instance variable instead of creating a new one
+        $this->collectionInterface->create($request->validated());
         
         return redirect()->route('dashboard.collection')
                         ->with('success', 'Collection created successfully.');
@@ -53,29 +66,23 @@ class CollectionController extends Controller
     /**
      * Display the specified resource.
      */
-/**
- * Display the specified resource.
- */
-public function show(string $id)
-{
-    try {
-        $collection = Collection::with('business')->findOrFail($id);
-        
-        // Debug output
-        Log::info("Found collection: {$collection->name} with ID: {$id}");
-        
-        return Inertia::render('Collection/show', [
-            'collection' => $collection
-        ]);
-    } catch (\Exception $e) {
-        Log::error("Error finding collection {$id}: " . $e->getMessage());
-        return redirect()->route('dashboard.collection')
-                      ->with('error', 'Collection not found');
+    public function show(string $id)
+    {
+        try {
+            $collection = $this->collectionInterface->findById((int)$id, ['*'], ['business']);
+            
+            // Debug output
+            Log::info("Found collection: {$collection->name} with ID: {$id}");
+            
+            return Inertia::render('Collection/show', [
+                'collection' => $collection
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error finding collection {$id}: " . $e->getMessage());
+            return redirect()->route('dashboard.collection')
+                          ->with('error', 'Collection not found');
+        }
     }
-}
-    /**
-     * Show the form for editing the specified resource.
-     */
 
     /**
      * Show the form for editing the specified resource.
@@ -84,7 +91,7 @@ public function show(string $id)
     {
         try {
             // Get the collection with related business
-            $collection = Collection::with('business')->findOrFail($id);
+            $collection = $this->collectionInterface->findById((int)$id, ['*'], ['business']);
             
             // Get all businesses for the dropdown
             $businesses = Business::all();
@@ -110,8 +117,6 @@ public function show(string $id)
     public function update(Request $request, string $id)
     {
         try {
-            $collection = Collection::findOrFail($id);
-            
             $validated = $request->validate([
                 'business_id' => 'required|exists:businesses,id',
                 'name' => 'required|string|max:255',
@@ -119,7 +124,7 @@ public function show(string $id)
                 'active' => 'boolean'
             ]);
             
-            $collection->update($validated);
+            $this->collectionInterface->update((int)$id, $validated);
             
             return redirect()->route('dashboard.collection')
                             ->with('success', 'Collection updated successfully.');
@@ -138,11 +143,11 @@ public function show(string $id)
     public function destroy(string $id)
     {
         try {
-            $collection = Collection::findOrFail($id);
+            $collection = $this->collectionInterface->findById((int)$id);
             $collectionName = $collection->name;
             
             // Delete the collection
-            $collection->delete();
+            $this->collectionInterface->deleteById((int)$id);
             
             return redirect()->route('dashboard.collection')
                             ->with('success', "Collection '$collectionName' was deleted successfully.");
