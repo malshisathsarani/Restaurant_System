@@ -16,11 +16,22 @@ class Collection extends Model
         'business_id',
         'name',
         'description',
+        'parent_id',
         'active'
     ];
     
     public function business()
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Collection::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Collection::class, 'parent_id');
     }
 }

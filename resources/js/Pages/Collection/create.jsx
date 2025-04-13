@@ -4,11 +4,23 @@ import { Inertia } from '@inertiajs/inertia';
 import Swal from 'sweetalert2';
 import Sidebar from '@/lib/SideNavLinks';
 
-export default function CreateCollection({ businesses }) {
+export default function CreateCollection({ businesses, collections }) {
+
+  // Define static parent collection options
+  const PREDEFINED_PARENT_COLLECTIONS = [
+    { id: 'shoes', name: 'Shoes' },
+    { id: 'clothing', name: 'Clothing' },
+    { id: 'accessories', name: 'Accessories' },
+    { id: 'electronics', name: 'Electronics' },
+    { id: 'furniture', name: 'Furniture' }
+  ];
+
+
   const [formData, setFormData] = useState({
     business_id: '',
     name: '',
     description: '',
+    parent_id: '',
     active: true,
   });
 
@@ -25,6 +37,10 @@ export default function CreateCollection({ businesses }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setProcessing(true);
+
+    // Debug what's being sent
+    console.log('Submitting form data:', formData);
+    
     
     // Use Inertia to submit the form
     Inertia.post('/dashboard/collection/store', formData, {
@@ -91,6 +107,28 @@ export default function CreateCollection({ businesses }) {
                 {errors.business_id && <p className="text-sm text-red-600 mt-1">{errors.business_id}</p>}
               </div>
               
+              {/* Parent Collection Selection */}
+              <div className="mb-4">
+                <label htmlFor="parent_id" className="block text-sm font-medium mb-1 text-gray-700">
+                  Parent Collection (optional)
+                </label>
+                <select
+                  name="parent_id"
+                  id="parent_id"
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  value={formData.parent_id || ''}
+                >
+                  <option value="">None (This is a parent collection)</option>
+                  
+                  {/* Only show Predefined Parent Collections */}
+                  {PREDEFINED_PARENT_COLLECTIONS.map(collection => (
+                    <option key={`predefined-${collection.id}`} value={collection.id}>
+                      {collection.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {/* Collection Name */}
               <div className="mb-4">
                 <label htmlFor="name" className="block text-sm font-medium mb-1 text-gray-700">

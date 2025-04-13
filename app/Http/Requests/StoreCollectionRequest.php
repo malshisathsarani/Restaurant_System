@@ -25,6 +25,7 @@ class StoreCollectionRequest extends FormRequest
             'business_id' => 'required|exists:businesses,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'parent_id' => 'nullable|string', // Allow string to support both predefined and numeric IDs
             'active' => 'boolean'
         ];
     }

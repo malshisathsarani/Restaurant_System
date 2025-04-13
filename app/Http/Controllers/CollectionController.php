@@ -30,9 +30,10 @@ class CollectionController extends Controller
     
     public function index()
     {
-        // Use the instance variable instead of creating a new one
-        $collections = $this->collectionInterface->all(['*'], ['business']);
-    
+         // Use the instance variable and include parent relationship
+        $collections = $this->collectionInterface->all(['*'], ['business', 'parent']);
+
+
         return Inertia::render('Collection/collection', [
             'collections' => $collections
         ]);
@@ -46,22 +47,74 @@ class CollectionController extends Controller
         // Get all businesses to populate the dropdown
         $businesses = Business::all();
 
+         // Get all collections for parent selection
+        $collections = $this->collectionInterface->all();
+
         return Inertia::render('Collection/create', [
-            'businesses' => $businesses // FIXED: Pass businesses instead of collections
+            'businesses' => $businesses,
+            'collections' => $collections // FIXED: Pass businesses instead of collections
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCollectionRequest $request)
-    {
-        // Use the instance variable instead of creating a new one
-        $this->collectionInterface->create($request->validated());
-        
-        return redirect()->route('dashboard.collection')
-                        ->with('success', 'Collection created successfully.');
+  /**
+ * Store a newly created resource in storage.
+ */
+public function store(StoreCollectionRequest $request)
+{
+    $validatedData = $request->validated();
+    
+    // Log the original request data
+    Log::info('Original collection data:', $validatedData);
+
+    // Check if parent_id is a predefined collection (string ID)
+    if (isset($validatedData['parent_id']) && !is_numeric($validatedData['parent_id'])) {
+        try {
+            // Create a new collection based on the predefined parent
+            $parentData = [
+                'business_id' => $validatedData['business_id'],
+                'name' => ucfirst($validatedData['parent_id']), // Convert 'shoes' to 'Shoes'
+                'description' => 'Auto-created parent category',
+                'active' => true
+            ];
+            
+            // Create the parent collection
+            $parentCollection = $this->collectionInterface->create($parentData);
+            
+            // Use the new collection's ID as parent_id
+            $validatedData['parent_id'] = $parentCollection->id;
+            
+            // Log the creation of a new parent
+            Log::info("Created parent collection '{$parentData['name']}' with ID: {$parentCollection->id}");
+            Log::info("Updated child collection parent_id to: {$validatedData['parent_id']}");
+        } catch (\Exception $e) {
+            // If there's an error creating the parent, set parent_id to null
+            Log::error("Failed to create parent collection: " . $e->getMessage());
+            $validatedData['parent_id'] = null;
+        }
+    } else {
+        // Safe way to fetch 'parent_id' from validated data if it's numeric or null
+        $validatedData['parent_id'] = $validatedData['parent_id'] ?? null;
     }
+
+    // Make sure the parent_id is an integer if it has a value
+    if (!empty($validatedData['parent_id'])) {
+        $validatedData['parent_id'] = (int)$validatedData['parent_id'];
+    }
+    
+    // Log what we're about to create
+    Log::info('Creating collection with data:', $validatedData);
+    
+    // Create the collection with the updated validatedData
+    $collection = $this->collectionInterface->create($validatedData);
+    
+    return redirect()->route('dashboard.collection')
+                    ->with('success', 'Collection created successfully.');
+}
+
+
 
     /**
      * Display the specified resource.
@@ -95,13 +148,19 @@ class CollectionController extends Controller
             
             // Get all businesses for the dropdown
             $businesses = Business::all();
+
+             // Get all collections for parent selection, excluding the current one
+            $collections = $this->collectionInterface->all()->filter(function($item) use ($id) {
+                return $item->id != $id;
+            })->values();
             
             // Log for debugging
             Log::info("Loading edit form for collection ID: {$id}");
             
             return Inertia::render('Collection/edit', [
                 'collection' => $collection,
-                'businesses' => $businesses
+                'businesses' => $businesses,
+                'collections' => $collections
             ]);
         } catch (\Exception $e) {
             Log::error("Error loading edit form for collection {$id}: " . $e->getMessage());
@@ -121,9 +180,15 @@ class CollectionController extends Controller
                 'business_id' => 'required|exists:businesses,id',
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
-                'active' => 'boolean'
+                'active' => 'boolean',
+                'parent_id' => 'nullable|exists:collections,id' // Add validation for parent_id
             ]);
-            
+
+             // Handle parent_id specifically to avoid self-reference
+            if (isset($validated['parent_id']) && $validated['parent_id'] == $id) {
+                $validated['parent_id'] = null; // Prevent collection from being its own parent
+            }
+                
             $this->collectionInterface->update((int)$id, $validated);
             
             return redirect()->route('dashboard.collection')

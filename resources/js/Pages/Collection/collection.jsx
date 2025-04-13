@@ -16,11 +16,27 @@ export default function Collection({ collections }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const filteredCollections = collections
-    ? collections.filter((collection) =>
-        collection.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  // Create a set of parent collection IDs that were auto-created
+  const autoCreatedParentIds = new Set();
+  collections.forEach(collection => {
+    // If this was auto-created as a parent AND has description "Auto-created parent category"
+    if (collection.description === 'Auto-created parent category') {
+      autoCreatedParentIds.add(collection.id);
+    }
+  });
+
+  // Filter collections to exclude auto-created parents
+  const displayCollections = collections.filter(collection => 
+    !autoCreatedParentIds.has(collection.id) || 
+    (collection.parent_id) // Keep if it's both a parent and a child
+  );
+
+   // Apply search filter to the already-filtered collections
+   const filteredCollections = displayCollections
+   ? displayCollections.filter((collection) =>
+       collection.name.toLowerCase().includes(searchTerm.toLowerCase())
+     )
+   : [];
 
   const handleDelete = (id, name) => {
     Swal.fire({
@@ -99,11 +115,15 @@ export default function Collection({ collections }) {
             </div>
           ) : filteredCollections.length > 0 ? (
             <div className="overflow-x-auto">
+           
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Parent Collection
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Business
@@ -124,7 +144,12 @@ export default function Collection({ collections }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                        {collection.business ? collection.business.name : 'N/A'}
+                          {collection.parent ? collection.parent.name : '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {collection.business ? collection.business.name : 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -137,6 +162,7 @@ export default function Collection({ collections }) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {/* Actions remain unchanged */}
                         <div className="flex justify-end space-x-2">
                           <Link
                             href={route('dashboard.collection.show', { id: collection.id })}
@@ -158,6 +184,7 @@ export default function Collection({ collections }) {
                             Delete
                           </button>
                         </div>
+                      
                       </td>
                     </tr>
                   ))}
