@@ -24,15 +24,6 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->timestamps();
 
-            $table->foreign('business_id')
-                ->references('id')
-                ->on('businesses')
-                ->onDelete('cascade');
-                
-            $table->foreign('collection_id')
-                ->references('id')
-                ->on('collections')
-                ->onDelete('cascade');
         });
     }
     /**

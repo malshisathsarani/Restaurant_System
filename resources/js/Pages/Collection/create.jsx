@@ -3,16 +3,17 @@ import { Head } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 import Swal from 'sweetalert2';
 import Sidebar from '@/lib/SideNavLinks';
+ // Assuming you have a constants file for predefined collections
 
 export default function CreateCollection({ businesses, collections }) {
 
   // Define static parent collection options
   const PREDEFINED_PARENT_COLLECTIONS = [
-    { id: 'shoes', name: 'Shoes' },
-    { id: 'clothing', name: 'Clothing' },
-    { id: 'accessories', name: 'Accessories' },
-    { id: 'electronics', name: 'Electronics' },
-    { id: 'furniture', name: 'Furniture' }
+    { id: '1', name: 'Shoes' },
+    { id: '2', name: 'Clothing' },
+    { id: '3', name: 'Accessories' },
+    { id: '4', name: 'Electronics' },
+    { id: '5', name: 'Furniture' }
   ];
 
 

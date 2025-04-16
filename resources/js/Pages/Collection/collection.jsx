@@ -4,13 +4,14 @@ import { Inertia } from '@inertiajs/inertia';
 import Swal from 'sweetalert2';
 import { Head } from '@inertiajs/react';
 import Sidebar from '@/lib/SideNavLinks';
-
 export default function Collection({ collections }) {
-  console.log('Collections detailed:', collections.map(c => ({
+  // Add detailed parent debugging
+  console.log('Collections with parent details:', collections.map(c => ({
     id: c.id,
     name: c.name,
-    business: c.business,
-    has_business: !!c.business
+    parent_id: c.parent_id,
+    has_parent: c.parent ? true : false,
+    parent_name: c.parent ? c.parent.name : 'NO PARENT',
   })));
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,9 +123,7 @@ export default function Collection({ collections }) {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Name
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Parent Collection
-                    </th>
+                    
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Business
                     </th>
@@ -142,11 +141,7 @@ export default function Collection({ collections }) {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{collection.name}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {collection.parent ? collection.parent.name : '-'}
-                        </div>
-                      </td>
+                      
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
                           {collection.business ? collection.business.name : 'N/A'}

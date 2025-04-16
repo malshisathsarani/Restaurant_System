@@ -16,13 +16,13 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('description')->nullable();
+            $table->integer('parent_id')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
 
-            $table->foreign('business_id')->
-            references('id')->
-            on('businesses')->
-            onDelete('cascade');
+            
+
+
         });
     }
 
