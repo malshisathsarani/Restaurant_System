@@ -13,7 +13,8 @@ export default function CreateCollection({ businesses, collections }) {
     { id: '2', name: 'Clothing' },
     { id: '3', name: 'Accessories' },
     { id: '4', name: 'Electronics' },
-    { id: '5', name: 'Furniture' }
+    { id: '5', name: 'Furniture' },
+    { id: '6', name: 'Food' }
   ];
 
 

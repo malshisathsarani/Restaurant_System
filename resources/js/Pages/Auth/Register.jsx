@@ -11,13 +11,22 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        role: 'user', // Default role
+        business_name: '', // Add business_name field
     });
 
     const submit = (e) => {
         e.preventDefault();
 
         post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
+            onSuccess: (page) => {
+                reset('password', 'password_confirmation');
+                // Only redirect to dashboard if the user is an admin
+                if (data.role !== 'admin') {
+                    // Prevent default redirect
+                    return false;
+                }
+            },
         });
     };
 
@@ -59,6 +68,43 @@ export default function Register() {
 
                     <InputError message={errors.email} className="mt-2" />
                 </div>
+
+                {/* Add role selection dropdown */}
+                <div className="mt-4">
+                    <InputLabel htmlFor="role" value="Role" />
+
+                    <select
+                        id="role"
+                        name="role"
+                        value={data.role}
+                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                        onChange={(e) => setData('role', e.target.value)}
+                        required
+                    >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <InputError message={errors.role} className="mt-2" />
+                </div>
+
+                {/* Conditional Business Name field */}
+                {data.role === 'admin' && (
+                    <div className="mt-4">
+                        <InputLabel htmlFor="business_name" value="Business Name" />
+
+                        <TextInput
+                            id="business_name"
+                            name="business_name"
+                            value={data.business_name}
+                            className="mt-1 block w-full"
+                            onChange={(e) => setData('business_name', e.target.value)}
+                            required
+                        />
+
+                        <InputError message={errors.business_name} className="mt-2" />
+                    </div>
+                )}
 
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Password" />

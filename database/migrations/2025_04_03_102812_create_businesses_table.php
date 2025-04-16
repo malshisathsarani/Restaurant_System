@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('businesses', function (Blueprint $table) {
             $table->id(); // Auto-incremental primary key
-            $table->string('name')->unique(); // Business name (must be unique)
+            $table->string('name');
             $table->string('logo')->nullable(); // Business logo (URL, can be null)
             $table->string('address')->nullable(); // Business address (can be null)
             $table->timestamps(); // Created_at and Updated_at timestamps

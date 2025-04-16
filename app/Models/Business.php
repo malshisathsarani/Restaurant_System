@@ -19,4 +19,11 @@ class Business extends Model
     {
         return $this->hasMany(Collection::class);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_business');
+    }
+
+    
 }
