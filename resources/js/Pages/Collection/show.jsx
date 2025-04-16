@@ -33,7 +33,7 @@ export default function Show({ collection }) {
           
           <div className="mb-4">
             <h2 className="text-lg font-semibold">Business</h2>
-            <p>{collection.business_name || 'N/A'}</p>
+            <p>{collection.business.name || 'N/A'}</p>
           </div>
           
           <div className="mb-6">
