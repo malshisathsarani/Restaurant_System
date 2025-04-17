@@ -21,6 +21,10 @@ class BusinessRepository extends BaseRepository implements BusinessInterface
         $this->model = $model;
     }
 
+    public function findByIdWithRelations(int $id, array $relations)
+    {
+        return Business::with($relations)->findOrFail($id);
+    }
     
 
 }

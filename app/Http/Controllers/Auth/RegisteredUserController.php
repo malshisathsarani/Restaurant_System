@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Business; // Add this import for the Business model
+use App\Models\Business;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,6 +40,12 @@ class RegisteredUserController extends Controller
             'business_name' => 'required_if:role,admin|string|max:255',
         ]);
 
+        // Log what's coming in from the form
+        Log::info('Registration data', [
+            'business_name' => $request->business_name,
+            'role' => $request->role
+        ]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -48,13 +55,24 @@ class RegisteredUserController extends Controller
 
         // Create business if admin user
         if ($request->role === 'admin' && !empty($request->business_name)) {
-            $business = Business::create([
-                'name' => $request->business_name,
-            ]);
+            // Use firstOrCreate to prevent duplicate business names
+            // Make sure we're using the exact value from the request
+            $businessName = trim($request->business_name);
+            
+            $business = Business::firstOrCreate(
+                ['name' => $businessName],
+                ['description' => 'Business created by ' . $user->name]
+            );
             
             // Associate user with business
             $user->businesses()->attach($business->id);
-        } // Missing closing brace was here
+            
+            // Log the business that was created
+            Log::info('Business created', [
+                'business_id' => $business->id,
+                'business_name' => $business->name
+            ]);
+        }
 
         event(new Registered($user));
 

@@ -101,10 +101,12 @@ public function store(StoreBusinessRequest $request)
     public function show(string $id)
     {
         try {
-            $business = $this->businessInterface->findById((int)$id);
+            // Get the business with its associated users
+            $business = $this->businessInterface->findByIdWithRelations((int)$id, ['users']);
             
             // Debug output
             Log::info("Found business: {$business->name} with ID: {$id}");
+            Log::info("Associated users count: " . $business->users->count());
             
             return Inertia::render('Business/show', [
                 'business' => $business
