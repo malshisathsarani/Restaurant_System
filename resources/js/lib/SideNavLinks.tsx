@@ -32,7 +32,16 @@ const navigationLinks = [
         route: "dashboard.item",
         icon: "BriefcaseIcon", // Replace with the appropriate Heroicon name
         count: 0,
-    }
+    },
+    {
+        name: "Users",
+        link: true,
+        border: false,
+        startWith: "/dashboard/users",
+        route: "dashboard.users",
+        icon: "UserGroupIcon", // Using UserGroupIcon for users
+        count: 0,
+    },
     
 
 ];

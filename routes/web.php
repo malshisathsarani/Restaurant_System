@@ -4,6 +4,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -58,10 +59,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/item/{id}/edit', [ItemController::class, 'edit'])->name('dashboard.item.edit');
     Route::put('dashboard/item/{id}', [ItemController::class, 'update'])->name('dashboard.item.update');
     Route::delete('dashboard/item/{id}', [ItemController::class, 'destroy'])->name('dashboard.item.destroy');
-    
     // API route for dependent dropdown
     Route::get('api/collections/{businessId}', [ItemController::class, 'getCollections'])
         ->name('api.collections');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard/users', [UserController::class, 'index'])->name('dashboard.users');
 });
 
 require __DIR__.'/auth.php';
