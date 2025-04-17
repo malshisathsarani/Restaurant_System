@@ -17,7 +17,7 @@ const Sidebar: FC<ISidebar> = ({ user }) => {
             {/* Static sidebar for desktop */}
             <div className="hidden lg:fixed lg:inset-y-[80px] lg:flex lg:w-[260px] lg:flex-col h-screen fixed left-0 top-0 bottom-0">
                 {/* Sidebar component, swap this element with another sidebar if you like */}
-                <div className="sticky flex flex-col flex-grow pt-0 pb-32 pl-4 pr-3 overflow-y-auto bg-slate-200">
+                <div className="sticky flex flex-col flex-grow pt-0 pb-32 pl-4 pr-3 overflow-y-auto bg-[#2563eb] text-white">
                     <nav
                         className="sticky flex flex-col flex-1 overflow-revert scrollbar-track-rounded-full scrollbar-thumb-rounded-full overscroll-auto scroll-smooth scrollbar-thin "
                         aria-label="Sidebar"
