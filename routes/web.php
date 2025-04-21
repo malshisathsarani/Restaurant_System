@@ -4,7 +4,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserBusinessController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -64,8 +64,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('api.collections');
 });
 
+
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard/users', [UserController::class, 'index'])->name('dashboard.users');
+    Route::get('dashboard/userbusiness', [UserBusinessController::class, 'index'])->name('dashboard.userbusiness');
+    Route::get('dashboard/userbusiness/create', [UserBusinessController::class, 'create'])->name('dashboard.userbusiness.create');
+    Route::post('dashboard/userbusiness/store', [UserBusinessController::class, 'store'])->name('dashboard.userbusiness.store');
+    Route::get('dashboard/userbusiness/{id}', [UserBusinessController::class, 'show'])->name('dashboard.userbusiness.show');
+    Route::get('dashboard/userbusiness/{id}/edit', [UserBusinessController::class, 'edit'])->name('dashboard.userbusiness.edit');
+    Route::put('dashboard/userbusiness/{id}', [UserBusinessController::class, 'update'])->name('dashboard.userbusiness.update');
+    Route::delete('dashboard/userbusiness/{id}', [UserBusinessController::class, 'destroy'])->name('dashboard.userbusiness.destroy');
+
+    
 });
+
 
 require __DIR__.'/auth.php';

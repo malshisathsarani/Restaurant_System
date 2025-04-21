@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Business;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,15 +38,10 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|in:admin,user',
-            'business_name' => 'required_if:role,admin|string|max:255',
+            'business_name' => 'required|string|max:255',
         ]);
 
-        // Log what's coming in from the form
-        Log::info('Registration data', [
-            'business_name' => $request->business_name,
-            'role' => $request->role
-        ]);
-
+        // Create the user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -53,10 +49,8 @@ class RegisteredUserController extends Controller
             'role' => $request->role,
         ]);
 
-        // Create business if admin user
+        // Create business for admin users during registration
         if ($request->role === 'admin' && !empty($request->business_name)) {
-            // Use firstOrCreate to prevent duplicate business names
-            // Make sure we're using the exact value from the request
             $businessName = trim($request->business_name);
             
             $business = Business::firstOrCreate(
@@ -64,20 +58,36 @@ class RegisteredUserController extends Controller
                 ['description' => 'Business created by ' . $user->name]
             );
             
+            // Handle logo upload if provided
+            if ($request->hasFile('logo')) {
+                $path = $request->file('logo')->store('logos', 'public');
+                $business->logo = $path;
+                $business->save();
+            }
+            
             // Associate user with business
             $user->businesses()->attach($business->id);
             
-            // Log the business that was created
-            Log::info('Business created', [
+            Log::info('Business created during registration', [
                 'business_id' => $business->id,
-                'business_name' => $business->name
+                'business_name' => $business->name,
+                'user_role' => $user->role,
+                'has_logo' => $request->hasFile('logo')
             ]);
         }
 
         event(new Registered($user));
 
         Auth::login($user);
+        // Redirect based on role
+        if ($request->role === 'user') {
+            // Regular users go to business creation page
+            return redirect()->route('dashboard.userbusiness.create', [
+                'businessName' => $request->business_name
+            ]);
+        }
 
-        return redirect(route('dashboard', absolute: false));
+        // Admins go directly to dashboard
+        return redirect()->route('dashboard');
     }
 }

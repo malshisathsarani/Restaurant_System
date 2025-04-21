@@ -1,8 +1,9 @@
+import { useEffect } from 'react';
+import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
@@ -12,22 +13,18 @@ export default function Register() {
         password: '',
         password_confirmation: '',
         role: 'user', // Default role
-        business_name: '', // Add business_name field
+        business_name: '', // Added business_name field
     });
+
+    useEffect(() => {
+        return () => {
+            reset('password', 'password_confirmation');
+        };
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
-
-        post(route('register'), {
-            onSuccess: (page) => {
-                reset('password', 'password_confirmation');
-                // Only redirect to dashboard if the user is an admin
-                if (data.role !== 'admin') {
-                    // Prevent default redirect
-                    return false;
-                }
-            },
-        });
+        post(route('register'));
     };
 
     return (
@@ -69,42 +66,36 @@ export default function Register() {
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                {/* Add role selection dropdown */}
-                <div className="mt-4">
-                    <InputLabel htmlFor="role" value="Role" />
 
+                <div className="mt-4">
+                    <InputLabel htmlFor="role" value="Account Type" />
                     <select
                         id="role"
                         name="role"
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         value={data.role}
-                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                         onChange={(e) => setData('role', e.target.value)}
-                        required
                     >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
-
                     <InputError message={errors.role} className="mt-2" />
                 </div>
+                
+                {/* Business name field - now always shown regardless of role */}
+                <div className="mt-4">
+                    <InputLabel htmlFor="business_name" value="Business Name" />
+                    <TextInput
+                        id="business_name"
+                        name="business_name"
+                        value={data.business_name}
+                        className="mt-1 block w-full"
+                        onChange={(e) => setData('business_name', e.target.value)}
+                        required
+                    />
+                    <InputError message={errors.business_name} className="mt-2" />
+                </div>
 
-                {/* Conditional Business Name field */}
-                {data.role === 'admin' && (
-                    <div className="mt-4">
-                        <InputLabel htmlFor="business_name" value="Business Name" />
-
-                        <TextInput
-                            id="business_name"
-                            name="business_name"
-                            value={data.business_name}
-                            className="mt-1 block w-full"
-                            onChange={(e) => setData('business_name', e.target.value)}
-                            required
-                        />
-
-                        <InputError message={errors.business_name} className="mt-2" />
-                    </div>
-                )}
 
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Password" />
@@ -124,10 +115,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
+                    <InputLabel htmlFor="password_confirmation" value="Confirm Password" />
 
                     <TextInput
                         id="password_confirmation"
@@ -136,27 +124,23 @@ export default function Register() {
                         value={data.password_confirmation}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
+                        onChange={(e) => setData('password_confirmation', e.target.value)}
                         required
                     />
 
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
+
+                <div className="flex items-center justify-end mt-4">
                     <Link
                         href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                         Already registered?
                     </Link>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <PrimaryButton className="ml-4" disabled={processing}>
                         Register
                     </PrimaryButton>
                 </div>
