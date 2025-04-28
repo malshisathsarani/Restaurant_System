@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Business;
 
 class BusinessController extends Controller
@@ -32,10 +33,25 @@ class BusinessController extends Controller
      */
     public function index()
     {
-        $businesses = $this->businessInterface->all(['*']);
-    
+        $user = Auth::user();
+
+        if ($user && $user->role === 'admin') {
+            // admins see every business
+            $businesses = $this->businessInterface->all(['*']);
+        }
+        elseif ($user && $user->role === 'user') {
+            // users only see their own businesses
+            $businessIds = $user->businesses->pluck('id')->toArray();
+            $businesses  = $this->businessInterface
+                                ->getByBusinessIds($businessIds, ['*'], ['users']);
+        }
+        else {
+            // no one else sees anything
+            $businesses = collect();
+        }
+
         return Inertia::render('Business/business', [
-            'businesses' => $businesses
+            'businesses' => $businesses,
         ]);
     }
 

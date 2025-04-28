@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Business; // Added import for Business model
 
 class User extends Authenticatable
 {
@@ -47,10 +47,13 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the businesses associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function businesses()
     {
-        return $this->belongsToMany(Business::class, 'user_business');
+        return $this->belongsToMany(Business::class, 'user_business', 'user_id', 'business_id');
     }
-    
-
 }

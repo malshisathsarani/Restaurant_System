@@ -57,7 +57,7 @@ export default function Create({ auth, businessName = '' }) {
                     <div className="space-y-6 welcome-step">
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-bold text-indigo-600 mb-4">Welcome to Your Business Journey!</h2>
-                            <p className="text-lg text-gray-600">We're excited to help you set up your restaurant business. Let's get started by entering your business name.</p>
+                            <p className="text-lg text-gray-600">We're excited to help you set up your business. Let's get started by entering your business name.</p>
                         </div>
                         
                         <div className="max-w-md mx-auto">
@@ -75,7 +75,7 @@ export default function Create({ auth, businessName = '' }) {
                             <InputError message={errors.business_name} className="mt-2" />
                             
                             <div className="text-sm text-gray-500 mt-2">
-                                This is the name customers will see when they visit your restaurant online.
+                                This is the name customers will see when they visit your Business online.
                             </div>
                         </div>
                     </div>
@@ -86,7 +86,7 @@ export default function Create({ auth, businessName = '' }) {
                     <div className="space-y-6">
                         <div className="text-center mb-10">
                             <h2 className="text-3xl font-bold text-indigo-600 mb-4">Create Your Brand Identity</h2>
-                            <p className="text-lg text-gray-600">Upload a logo that represents your restaurant's unique style.</p>
+                            <p className="text-lg text-gray-600">Upload a logo that represents your buiness's unique style.</p>
                         </div>
                         
                         <div className="max-w-md mx-auto">

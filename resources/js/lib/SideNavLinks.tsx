@@ -40,7 +40,7 @@ const SideNavLinks: React.FC = () => {
             link: true,
             border: false,
             startWith: "/dashboard/users",
-            route: "dashboard.users",
+            route: "dashboard.user",
             icon: "UserGroupIcon", // Already has a good icon
             count: 0,
         },

@@ -5,6 +5,7 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserBusinessController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -62,6 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // API route for dependent dropdown
     Route::get('api/collections/{businessId}', [ItemController::class, 'getCollections'])
         ->name('api.collections');
+});
+
+// User routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard/user', [UserController::class, 'index'])->name('dashboard.user');
+    
 });
 
 

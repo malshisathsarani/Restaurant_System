@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class ItemController extends Controller
 {
@@ -32,22 +33,52 @@ class ItemController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        // Get all items with business and collection relationships
+{
+    $user = Auth::user();
+
+    if ($user && $user->role === 'admin') {
+        // Admin sees all items
         $items = $this->itemInterface->all(['*'], ['business', 'collection']);
-        
-        return Inertia::render('Item/item', [
-            'items' => $items
-        ]);
     }
+    elseif ($user && $user->role === 'user') {
+        // User only sees items belonging to their businesses
+        $businessIds = $user->businesses->pluck('id')->toArray();
+        $items = $this->itemInterface->getByBusinessIds(
+            $businessIds, 
+            ['*'], 
+            ['business', 'collection']
+        );
+    }
+    else {
+        // Unauthenticated / other roles see nothing
+        $items = collect();
+    }
+
+    return Inertia::render('Item/item', [
+        'items' => $items
+    ]);
+}
+
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $businesses = Business::all();
+
+        $user = Auth::user();
+
         $collections = Collection::all();
+
+        if ($user) {
+            if ($user->role === 'admin') {
+                // Fetch all businesses for admin
+                $businesses = Business::all();
+            } elseif ($user->role === 'user') {
+                // Fetch only the user's businesses
+                $businesses = $user->businesses;
+            }
+        }
         
         return Inertia::render('Item/create', [
             'businesses' => $businesses,

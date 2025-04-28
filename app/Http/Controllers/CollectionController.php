@@ -8,11 +8,12 @@ use App\Http\Requests\StoreCollectionRequest;
 use App\Repositories\All\Collections\CollectionInterface;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class CollectionController extends Controller
 {
-     /**
+    /**
      * @var CollectionInterface
      */
     protected $collectionInterface;
@@ -27,12 +28,21 @@ class CollectionController extends Controller
         $this->collectionInterface = $collectionInterface;
     }
 
-    
     public function index()
     {
-         // Use the instance variable and include parent relationship
-        $collections = $this->collectionInterface->all(['*'], ['business', 'parent']);
+        $user = Auth::user();
 
+        if ($user && $user->role === 'admin') {
+            // Admins see all collections
+            $collections = $this->collectionInterface->all(['*'], ['business', 'parent']);
+        } elseif ($user && $user->role === 'user') {
+            // Users see only collections related to their businesses
+            $businessIds = $user->businesses->pluck('id')->toArray();
+            $collections = $this->collectionInterface->getByBusinessIds($businessIds, ['*'], ['business', 'parent']);
+        } else {
+            // Unauthenticated users or other roles see no collections
+            $collections = collect();
+        }
 
         return Inertia::render('Collection/collection', [
             'collections' => $collections
@@ -43,78 +53,85 @@ class CollectionController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    {
-        // Get all businesses to populate the dropdown
-        $businesses = Business::all();
+        {
+            $user = Auth::user();
 
-         // Get all collections for parent selection
-        $collections = $this->collectionInterface->all();
+            // Initialize businesses as an empty collection
+            $businesses = collect();
 
-        return Inertia::render('Collection/create', [
-            'businesses' => $businesses,
-            'collections' => $collections // FIXED: Pass businesses instead of collections
-        ]);
-    }
+            if ($user) {
+                if ($user->role === 'admin') {
+                    // Fetch all businesses for admin
+                    $businesses = Business::all();
+                } elseif ($user->role === 'user') {
+                    // Fetch only the user's businesses
+                    $businesses = $user->businesses;
+                }
+            }
+
+            // Get all collections for parent selection
+            $collections = $this->collectionInterface->all();
+
+            return Inertia::render('Collection/create', [
+                'businesses' => $businesses,
+                'collections' => $collections
+            ]);
+        }
 
     /**
      * Store a newly created resource in storage.
      */
-  /**
- * Store a newly created resource in storage.
- */
-public function store(StoreCollectionRequest $request)
-{
-    $validatedData = $request->validated();
-    
-    // Log the original request data
-    Log::info('Original collection data:', $validatedData);
+    public function store(StoreCollectionRequest $request)
+    {
+        $validatedData = $request->validated();
+        
+        // Log the original request data
+        Log::info('Original collection data:', $validatedData);
 
-    // Check if parent_id is a predefined collection (string ID)
-    if (isset($validatedData['parent_id']) && !is_numeric($validatedData['parent_id'])) {
-        try {
-            // Create a new collection based on the predefined parent
-            $parentData = [
-                'business_id' => $validatedData['business_id'],
-                'name' => ucfirst($validatedData['parent_id']), // Convert 'shoes' to 'Shoes'
-                'description' => 'Auto-created parent category',
-                'active' => true
-            ];
-            
-            // Create the parent collection
-            $parentCollection = $this->collectionInterface->create($parentData);
-            
-            // Use the new collection's ID as parent_id
-            $validatedData['parent_id'] = $parentCollection->id;
-            
-            // Log the creation of a new parent
-            Log::info("Created parent collection '{$parentData['name']}' with ID: {$parentCollection->id}");
-            Log::info("Updated child collection parent_id to: {$validatedData['parent_id']}");
-        } catch (\Exception $e) {
-            // If there's an error creating the parent, set parent_id to null
-            Log::error("Failed to create parent collection: " . $e->getMessage());
-            $validatedData['parent_id'] = null;
+        // Check if parent_id is a predefined collection (string ID)
+        if (isset($validatedData['parent_id']) && !is_numeric($validatedData['parent_id'])) {
+            try {
+                // Create a new collection based on the predefined parent
+                $parentData = [
+                    'business_id' => $validatedData['business_id'],
+                    'name' => ucfirst($validatedData['parent_id']), // Convert 'shoes' to 'Shoes'
+                    'description' => 'Auto-created parent category',
+                    'active' => true
+                ];
+                
+                // Create the parent collection
+                $parentCollection = $this->collectionInterface->create($parentData);
+                
+                // Use the new collection's ID as parent_id
+                $validatedData['parent_id'] = $parentCollection->id;
+                
+                // Log the creation of a new parent
+                Log::info("Created parent collection '{$parentData['name']}' with ID: {$parentCollection->id}");
+                Log::info("Updated child collection parent_id to: {$validatedData['parent_id']}");
+            } catch (\Exception $e) {
+                // If there's an error creating the parent, set parent_id to null
+                Log::error("Failed to create parent collection: " . $e->getMessage());
+                $validatedData['parent_id'] = null;
+            }
+        } else {
+            // Safe way to fetch 'parent_id' from validated data if it's numeric or null
+            $validatedData['parent_id'] = $validatedData['parent_id'] ?? null;
         }
-    } else {
-        // Safe way to fetch 'parent_id' from validated data if it's numeric or null
-        $validatedData['parent_id'] = $validatedData['parent_id'] ?? null;
+
+        // Make sure the parent_id is an integer if it has a value
+        if (!empty($validatedData['parent_id'])) {
+            $validatedData['parent_id'] = (int)$validatedData['parent_id'];
+        }
+        
+        // Log what we're about to create
+        Log::info('Creating collection with data:', $validatedData);
+        
+        // Create the collection with the updated validatedData
+        $collection = $this->collectionInterface->create($validatedData);
+        
+        return redirect()->route('dashboard.collection')
+                        ->with('success', 'Collection created successfully.');
     }
-
-    // Make sure the parent_id is an integer if it has a value
-    if (!empty($validatedData['parent_id'])) {
-        $validatedData['parent_id'] = (int)$validatedData['parent_id'];
-    }
-    
-    // Log what we're about to create
-    Log::info('Creating collection with data:', $validatedData);
-    
-    // Create the collection with the updated validatedData
-    $collection = $this->collectionInterface->create($validatedData);
-    
-    return redirect()->route('dashboard.collection')
-                    ->with('success', 'Collection created successfully.');
-}
-
-
 
     /**
      * Display the specified resource.
@@ -149,7 +166,7 @@ public function store(StoreCollectionRequest $request)
             // Get all businesses for the dropdown
             $businesses = Business::all();
 
-             // Get all collections for parent selection, excluding the current one
+            // Get all collections for parent selection, excluding the current one
             $collections = $this->collectionInterface->all()->filter(function($item) use ($id) {
                 return $item->id != $id;
             })->values();
@@ -184,7 +201,7 @@ public function store(StoreCollectionRequest $request)
                 'parent_id' => 'nullable|exists:collections,id' // Add validation for parent_id
             ]);
 
-             // Handle parent_id specifically to avoid self-reference
+            // Handle parent_id specifically to avoid self-reference
             if (isset($validated['parent_id']) && $validated['parent_id'] == $id) {
                 $validated['parent_id'] = null; // Prevent collection from being its own parent
             }

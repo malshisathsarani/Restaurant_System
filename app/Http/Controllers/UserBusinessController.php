@@ -8,6 +8,7 @@ use App\Models\Business;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UserBusinessController extends Controller
 {
@@ -15,7 +16,8 @@ class UserBusinessController extends Controller
     {
         // Get businesses associated with current user
         $user = Auth::user();
-        $businesses = $user->businesses;
+        // Using fresh() to ensure we get the latest data
+        $businesses = $user->businesses()->get()->fresh();
         
         return Inertia::render('UserSide/UserBusiness/dashboard', [
             'businesses' => $businesses
@@ -24,9 +26,12 @@ class UserBusinessController extends Controller
     
     public function create(Request $request)
     {
-        // Get all businesses to allow the user to select an existing one
+        $businessId = $request->query('business_id', null);
+
         $businesses = Business::all();
-        
+
+        $businessId = $request->session()->get('active_business_id');
+
         return Inertia::render('UserSide/UserBusiness/create', [
             'businessName' => $request->query('businessName')
         ]);
@@ -96,7 +101,7 @@ class UserBusinessController extends Controller
             abort(403, 'Unauthorized access to this business');
         }
         
-        return Inertia::render('UserSide/UserBusiness/Show', [
+        return Inertia::render('UserSide/UserBusiness/dashboard', [
             'business' => $business
         ]);
     }
@@ -127,17 +132,24 @@ class UserBusinessController extends Controller
         }
         
         $request->validate([
-            'name' => 'required|string|max:255',
+            'business_name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'logo' => 'nullable|image|max:1024', // 1MB max
+            'address' => 'required|string|max:500',
         ]);
         
         $business->update([
-            'name' => $request->name,
-            'description' => $request->description ?? $business->description,
+            'name' => $request->business_name,
+            'description' => $request->description,
+            'address' => $request->address,
         ]);
         
         if ($request->hasFile('logo')) {
+            // Remove old logo if exists
+            if ($business->logo && Storage::disk('public')->exists($business->logo)) {
+                Storage::disk('public')->delete($business->logo);
+            }
+            
             $path = $request->file('logo')->store('logos', 'public');
             $business->logo = $path;
             $business->save();

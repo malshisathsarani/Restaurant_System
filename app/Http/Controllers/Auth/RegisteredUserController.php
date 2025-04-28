@@ -88,6 +88,6 @@ class RegisteredUserController extends Controller
         }
 
         // Admins go directly to dashboard
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard.business');
     }
 }
